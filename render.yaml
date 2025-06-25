@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: audio-watermarker
+    runtime: python
+    buildCommand: chmod +x install.sh && ./install.sh
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    plan: free
+    healthCheckPath: /
