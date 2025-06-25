@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Watermarking Tool</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f4f4;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Container Styling */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* Header Styling */
+        .header {
+            background: #0078d7;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            background: #e9ecef;
+            border-bottom: 1px solid #d1d1d1;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            background: #ffffff;
+            border-bottom: 3px solid #0078d7;
+            color: #0078d7;
+        }
+
+        /* Tab Content Styling */
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d1d1;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0078d7;
+        }
+
+        /* File Input Styling */
+        .file-input {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #f4f4f4;
+            border: 1px dashed #d1d1d1;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: #e9ecef;
+            border-color: #0078d7;
+        }
+
+        /* Button Styling */
+        .btn {
+            background: #0078d7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Progress Bar Styling */
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 15px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #0078d7;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Result Container Styling */
+        .result-container {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f4f4f4;
+            border-radius: 5px;
+        }
+
+        /* Error and Success Messages */
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        /* Advanced Parameters Styling */
+        .advanced-params {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f4f4f4;
+            border-radius: 5px;
+        }
+
+        .advanced-params.show {
+            display: block;
+        }
+
+        .toggle-advanced {
+            background: none;
+            border: none;
+            color: #0078d7;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        /* Character Counter Styling */
+        .char-counter {
+            font-size: 12px;
+            color: #6c757d;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .char-counter.over-limit {
+            color: #dc3545;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .param-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Audio Watermarking Tool</h1>
+            <p>Insert and extract audio watermarks using DCT and DWT+DCT</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('embed')">Insert Watermark</button>
+            <button class="tab" onclick="switchTab('extract')">Extract Watermark</button>
+        </div>
+
+        <!-- Embed Tab -->
+        <div id="embed-tab" class="tab-content active">
+            <form id="embedForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="embed-file">Fichier Audio</label>
+                    <div class="file-input">
+                        <input type="file" id="embed-file" name="audio_file" accept=".wav,.flac,.aiff,.mp3,.ogg,.aac,.m4a,.opus,.wma">
+                        <label for="embed-file" class="file-input-label">
+                            <span id="embed-file-label">Cliquez pour sélectionner un fichier audio</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="watermark-text">Texte du Watermark</label>
+                    <textarea id="watermark-text" name="watermark_text" placeholder="Entrez votre watermark (max 80 caractères)" maxlength="80"></textarea>
+                    <div class="char-counter" id="char-counter">0/80 caractères</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="embed-method">Méthode</label>
+                    <select id="embed-method" name="method">
+                        <option value="DCT">DCT</option>
+                        <option value="DWT+DCT">DWT+DCT</option>
+                    </select>
+                </div>
+
+                <button type="button" class="toggle-advanced" onclick="toggleAdvanced('embed')">
+                    Paramètres Avancés ▼
+                </button>
+
+                <div id="embed-advanced" class="advanced-params">
+                    <div class="param-grid">
+                        <div class="form-group">
+                            <label for="embed-segment-length">Longueur Segment</label>
+                            <select id="embed-segment-length" name="segment_length">
+                                <option value="512">512</option>
+                                <option value="1024">1024</option>
+                                <option value="2048" selected>2048</option>
+                                <option value="4096">4096</option>
+                                <option value="8192">8192</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-seed">Graine Aléatoire</label>
+                            <input type="number" id="embed-seed" name="seed" value="42">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-modulation">Modulation Strength</label>
+                            <input type="number" id="embed-modulation" name="modulation_strength" value="0.005" step="0.001" min="0.001" max="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-band-lower">Bande Inférieure (%)</label>
+                            <input type="number" id="embed-band-lower" name="band_lower_pct" value="33" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-band-upper">Bande Supérieure (%)</label>
+                            <input type="number" id="embed-band-upper" name="band_upper_pct" value="66" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-n-coeffs">Nb Coefficients</label>
+                            <input type="number" id="embed-n-coeffs" name="n_coeffs" value="5" min="1" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-dwt-level">Niveau DWT</label>
+                            <input type="number" id="embed-dwt-level" name="dwt_level" value="1" min="1" max="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-dwt-wavelet">Ondelette DWT</label>
+                            <select id="embed-dwt-wavelet" name="dwt_wavelet">
+                                <option value="haar" selected>haar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="embed-dwt-coeff">Coefficients DWT</label>
+                            <select id="embed-dwt-coeff" name="dwt_coeff_type">
+                                <option value="cA" selected>cA</option>
+                                <option value="cD">cD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="embed-btn">Insérer Watermark</button>
+            </form>
+
+            <div class="progress-container" id="embed-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="embed-progress-fill"></div>
+                </div>
+                <p id="embed-progress-text">Traitement en cours...</p>
+            </div>
+
+            <div class="result-container" id="embed-result">
+                <h3>Watermark Inséré avec Succès!</h3>
+                <p id="embed-result-text"></p>
+                <button class="btn" id="download-btn" onclick="downloadFile()">Télécharger</button>
+            </div>
+        </div>
+
+        <!-- Extract Tab -->
+        <div id="extract-tab" class="tab-content">
+            <form id="extractForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="extract-file">Fichier Audio Watermarqué</label>
+                    <div class="file-input">
+                        <input type="file" id="extract-file" name="audio_file" accept=".wav,.flac,.aiff,.mp3,.ogg,.aac,.m4a,.opus,.wma">
+                        <label for="extract-file" class="file-input-label">
+                            <span id="extract-file-label">Cliquez pour sélectionner un fichier audio</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="watermark-length">Longueur Watermark</label>
+                    <input type="number" id="watermark-length" name="watermark_length" value="80" min="1" max="200">
+                </div>
+
+                <div class="form-group">
+                    <label for="extract-method">Méthode</label>
+                    <select id="extract-method" name="method">
+                        <option value="DCT">DCT</option>
+                        <option value="DWT+DCT">DWT+DCT</option>
+                    </select>
+                </div>
+
+                <button type="button" class="toggle-advanced" onclick="toggleAdvanced('extract')">
+                    Paramètres Avancés ▼
+                </button>
+
+                <div id="extract-advanced" class="advanced-params">
+                    <div class="param-grid">
+                        <div class="form-group">
+                            <label for="extract-segment-length">Longueur Segment</label>
+                            <select id="extract-segment-length" name="segment_length">
+                                <option value="512">512</option>
+                                <option value="1024">1024</option>
+                                <option value="2048" selected>2048</option>
+                                <option value="4096">4096</option>
+                                <option value="8192">8192</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-seed">Graine Aléatoire</label>
+                            <input type="number" id="extract-seed" name="seed" value="42">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-modulation">Modulation Strength</label>
+                            <input type="number" id="extract-modulation" name="modulation_strength" value="0.005" step="0.001" min="0.001" max="0.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-band-lower">Bande Inférieure (%)</label>
+                            <input type="number" id="extract-band-lower" name="band_lower_pct" value="33" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-band-upper">Bande Supérieure (%)</label>
+                            <input type="number" id="extract-band-upper" name="band_upper_pct" value="66" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-n-coeffs">Nb Coefficients</label>
+                            <input type="number" id="extract-n-coeffs" name="n_coeffs" value="5" min="1" max="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-dwt-level">Niveau DWT</label>
+                            <input type="number" id="extract-dwt-level" name="dwt_level" value="1" min="1" max="5">
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-dwt-wavelet">Ondelette DWT</label>
+                            <select id="extract-dwt-wavelet" name="dwt_wavelet">
+                                <option value="haar" selected>haar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="extract-dwt-coeff">Coefficients DWT</label>
+                            <select id="extract-dwt-coeff" name="dwt_coeff_type">
+                                <option value="cA" selected>cA</option>
+                                <option value="cD">cD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn" id="extract-btn">Extraire Watermark</button>
+            </form>
+
+            <div class="progress-container" id="extract-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="extract-progress-fill"></div>
+                </div>
+                <p id="extract-progress-text">Extraction en cours...</p>
+            </div>
+
+            <div class="result-container" id="extract-result">
+                <h3>Watermark Extrait:</h3>
+                <textarea id="extracted-watermark" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let downloadData = null;
+        let downloadFilename = null;
+        const SERVER_URL = 'http://192.168.145.118:5000';
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWavelets();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Gestion des fichiers
+            document.getElementById('embed-file').addEventListener('change', function(e) {
+                const label = document.getElementById('embed-file-label');
+                label.textContent = e.target.files[0] ? e.target.files[0].name : 'Cliquez pour sélectionner un fichier audio';
+            });
+
+            document.getElementById('extract-file').addEventListener('change', function(e) {
+                const label = document.getElementById('extract-file-label');
+                label.textContent = e.target.files[0] ? e.target.files[0].name : 'Cliquez pour sélectionner un fichier audio';
+            });
+
+            // Compteur de caractères
+            document.getElementById('watermark-text').addEventListener('input', function(e) {
+                const counter = document.getElementById('char-counter');
+                const length = e.target.value.length;
+                counter.textContent = `${length}/80 caractères`;
+                counter.classList.toggle('over-limit', length > 80);
+            });
+
+            // Formulaires
+            document.getElementById('embedForm').addEventListener('submit', handleEmbedSubmit);
+            document.getElementById('extractForm').addEventListener('submit', handleExtractSubmit);
+        }
+
+        function switchTab(tabName) {
+            // Désactiver tous les onglets
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Activer l'onglet sélectionné
+            document.querySelector(`button[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function toggleAdvanced(type) {
+            const advanced = document.getElementById(`${type}-advanced`);
+            const button = document.querySelector(`#${type}-tab .toggle-advanced`);
+            
+            advanced.classList.toggle('show');
+            button.textContent = advanced.classList.contains('show') ? 
+                'Paramètres Avancés ▲' : 'Paramètres Avancés ▼';
+        }
+
+        async function loadWavelets() {
+            try {
+                const response = await fetch(`${SERVER_URL}/api/wavelets`);
+                const data = await response.json();
+                
+                const selects = document.querySelectorAll('[name="dwt_wavelet"]');
+                selects.forEach(select => {
+                    select.innerHTML = '';
+                    data.wavelets.forEach(wavelet => {
+                        const option = document.createElement('option');
+                        option.value = wavelet;
+                        option.textContent = wavelet;
+                        if (wavelet === 'haar') option.selected = true;
+                        select.appendChild(option);
+                    });
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des ondelettes:', error);
+            }
+        }
+
+        async function handleEmbedSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const button = document.getElementById('embed-btn');
+            const progress = document.getElementById('embed-progress');
+            const result = document.getElementById('embed-result');
+            
+            // Validation
+            if (!formData.get('audio_file').name) {
+                showError('Veuillez sélectionner un fichier audio');
+                return;
+            }
+            
+            if (!formData.get('watermark_text')) {
+                showError('Veuillez entrer un texte de watermark');
+                return;
+            }
+            
+            if (formData.get('watermark_text').length > 80) {
+                showError('Le texte du watermark ne peut dépasser 80 caractères');
+                return;
+            }
+
+            button.disabled = true;
+            progress.style.display = 'block';
+            result.style.display = 'none';
+            hideError();
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/embed`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    downloadData = data.file_data;
+                    downloadFilename = data.filename;
+                    
+                    progress.style.display = 'none';
+                    result.style.display = 'block';
+                    document.getElementById('embed-result-text').textContent = 
+                        `Modulation finale: ${data.final_modulation}`;
+                    
+                    showSuccess('Watermark inséré avec succès!');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                progress.style.display = 'none';
+                showError('Erreur: ' + error.message);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function handleExtractSubmit(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            const button = document.getElementById('extract-btn');
+            const progress = document.getElementById('extract-progress');
+            const result = document.getElementById('extract-result');
+            
+            // Validation
+            if (!formData.get('audio_file').name) {
+                showError('Veuillez sélectionner un fichier audio');
+                return;
+            }
+
+            button.disabled = true;
+            progress.style.display = 'block';
+            result.style.display = 'none';
+            hideError();
+
+            try {
+                const response = await fetch(`${SERVER_URL}/api/extract`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    progress.style.display = 'none';
+                    result.style.display = 'block';
+                    document.getElementById('extracted-watermark').value = data.extracted_watermark;
+                    
+                    showSuccess('Watermark extrait avec succès!');
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                progress.style.display = 'none';
+                showError('Erreur: ' + error.message);
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        function downloadFile() {
+            if (!downloadData || !downloadFilename) {
+                showError('Aucun fichier disponible pour téléchargement');
+                return;
+            }
+
+            const byteCharacters = atob(downloadData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray]);
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = downloadFilename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        function showError(message) {
+            hideError();
+            const error = document.createElement('div');
+            error.className = 'error';
+            error.textContent = message;
+            error.id = 'error-message';
+            document.querySelector('.tab-content.active').prepend(error);
+        }
+
+        function showSuccess(message) {
+            hideError();
+            const success = document.createElement('div');
+            success.className = 'success';
+            success.textContent = message;
+            success.id = 'success-message';
+            document.querySelector('.tab-content.active').prepend(success);
+        }
+
+        function hideError() {
+            const existing = document.querySelectorAll('#error-message, #success-message');
+            existing.forEach(el => el.remove());
+        }
+    </script>
+</body>
+</html>
